@@ -20,7 +20,10 @@ class StringSearcherInStream {
     size_t last_prefix_value;
 
     size_t prefix_iterate(size_t ind, char c) const {
-        assert(ind < prefix_fun.size());
+        assert(ind <= prefix_fun.size());
+        if (ind == prefix_fun.size()) {
+            ind = prefix_fun[ind - 1];
+        }
         while (ind > 0 && c != pattern[ind]) {
             ind = prefix_fun[ind - 1];
         }
@@ -31,8 +34,8 @@ class StringSearcherInStream {
     }
 
 public:
-    explicit StringSearcherInStream(string const &pattern)
-            : pattern(pattern), prefix_fun(pattern.size()), last_prefix_value(0) {
+    explicit StringSearcherInStream(string pattern_)
+            : pattern(std::move(pattern_)), prefix_fun(pattern.size()), last_prefix_value(0) {
         for (size_t i = 1; i < pattern.size(); i++) {
             size_t start = prefix_fun[i - 1];
             prefix_fun[i] = prefix_iterate(start, pattern[i]);
