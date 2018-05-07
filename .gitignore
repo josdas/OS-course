@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+
+Grep/cmake-build-debug
+JIT-function/cmake-build-debug
+Shell/cmake-build-debug
+

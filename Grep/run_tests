@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Compile
+mkdir temp
+cd temp
+cmake ../
+make
+mv OS ../tests/main
+cd ../
+rm -r temp
+cd tests/main
+
+# Test
+TEST_FILE="../res/mgrep.result"
+ANS_FILE="../res/ans"
+COUNT=0
+COUNT_OK=0
+
+function run_test {
+	COUNT=$((COUNT+1))
+	./OS $1 > $TEST_FILE
+	if cmp -s $TEST_FILE "${ANS_FILE}${2}" ; then
+		echo OK
+		COUNT_OK=$((COUNT_OK+1))
+	else
+		echo FAIL
+	fi
+}
+
+echo -e "\n\n\nTESTING"
+echo "Test results:"
+
+#####################
+# 1
+run_test word 1
+
+# 2
+run_test loooool 2
+
+# 3
+mv link ../
+run_test word  3
+mv ../link .
+#####################
+
+echo "Complete ${COUNT_OK}/${COUNT}"
+rm $TEST_FILE
+rm ./OS
