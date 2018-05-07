@@ -19,17 +19,18 @@ using std::pair;
 using std::set;
 using std::map;
 using std::endl;
+using std::ostream;
 
 
-void print_error(string const &error) {
-    cerr << error << endl;
+void print_error(std::ostream &error_stream, string const &error) {
+    error_stream << error << endl;
 }
 
 
-bool check_contains(string const &path, string const &str) {
+bool check_contains(string const &path, string const &str, ostream &error_stream) {
     auto fd = AutoCloseableFile(path, O_RDONLY);
     if (fd.get() < 0) {
-        print_error("Can't open file: " + path);
+        print_error(error_stream, "Can't open file: " + path);
         return false;
     }
 
@@ -53,7 +54,7 @@ bool check_contains(string const &path, string const &str) {
         }
     }
     if (chars_read < 0) {
-        print_error("Error during reading file: " + path);
+        print_error(error_stream, "Error during reading file: " + path);
         return false;
     }
 
@@ -61,7 +62,7 @@ bool check_contains(string const &path, string const &str) {
 }
 
 
-vector<string> grep(string const &str) {
+vector<string> grep(string const &str, ostream &error_stream) {
     Path start_path = get_cur_path();
     ino_t start_ino = get_stat(start_path.to_string()).st_ino;
 
@@ -81,7 +82,7 @@ vector<string> grep(string const &str) {
 
         auto cur_dir = AutoCloseableDir(path.to_string());
         if (cur_dir.get() == nullptr) {
-            print_error("Error: can't open directory: " + path.to_string());
+            print_error(error_stream, "Error: can't open directory: " + path.to_string());
             continue;
         }
 
@@ -124,7 +125,7 @@ vector<string> grep(string const &str) {
             } else if (S_ISREG(mode)) {
                 bool is_checked = checked.count(next_ino) > 0;
                 if (!is_checked) {
-                    if (check_contains(next_path.to_string(), str)) {
+                    if (check_contains(next_path.to_string(), str, error_stream)) {
                         good_inos.insert(next_ino);
                     }
                     checked.insert(next_ino);
@@ -142,7 +143,7 @@ vector<string> grep(string const &str) {
     std::sort(paths.begin(), paths.end());
 
     vector<string> result;
-    for (auto const& path : paths) {
+    for (auto const &path : paths) {
         result.push_back(path.to_string());
     }
     return result;
@@ -151,12 +152,12 @@ vector<string> grep(string const &str) {
 
 int main(int argc, const char *argv[]) {
     if (argc != 2) {
-        print_error("One argument is required.\n"
-                            "Example: ./grep aaa");
+        print_error(cerr, "One argument is required.\n"
+                "Example: ./grep aaa");
         return 1;
     }
     string goal(argv[1]);
-    auto results = grep(goal);
+    auto results = grep(goal, cerr);
     for (auto const &str : results) {
         cout << str << endl;
     }
