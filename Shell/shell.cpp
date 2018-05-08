@@ -45,22 +45,29 @@ unique_ptr<const char *const> ptr_from_vector_string(vector<string> const &argv)
 }
 
 
-void execute(char **argv) {
+void execute(char const* const *argv, char* envp[]) {
+    char **argv_ = const_cast<char **>(argv);
     int status;
+    int code;
     pid_t pid = fork();
     switch (pid) {
         case -1:
             cerr << "Fork failed\n";
             break;
         case 0:
-            if (execvp(argv[0], argv) < 0) {
+            code = execve(argv_[0], argv_, envp);
+            if (code < 0) {
                 cerr << "Execute command failed\n";
                 exit(-1);
             }
             break;
         default:
-            if (waitpid(pid, &status, 0) == -1) {
+            code = waitpid(pid, &status, 0);
+            if (code == -1) {
                 cerr << "Error occurred during execution\n";
+            }
+            else {
+                cout << "Program finished with return code: " << WEXITSTATUS(status) << std::endl;
             }
             break;
     }
@@ -73,7 +80,7 @@ void greeting() {
 }
 
 
-void run_shell() {
+void run_shell(char* envp[]) {
     string command;
     greeting();
     while (getline(cin, command)) {
@@ -82,13 +89,13 @@ void run_shell() {
         }
         vector<string> parsed_command = parse_command(command);
         auto ptr_argv = ptr_from_vector_string(parsed_command);
-        execute(const_cast<char **>(ptr_argv.get()));
+        execute(ptr_argv.get(), envp);
         greeting();
     }
 }
 
 
-int main(int argc, char **argv) {
-    run_shell();
+int main(int argc, char **argv, char* envp[]) {
+    run_shell(envp);
     return 0;
 }
