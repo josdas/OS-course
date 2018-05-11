@@ -1,0 +1,16 @@
+#!/bin/bash
+
+cd dynamic_lib
+make all
+cd ../
+
+cd loadable_lib
+make all
+cd ../
+
+cd static_lib
+make all
+cd ../
+
+make all
+
