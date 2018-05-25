@@ -1,0 +1,2 @@
+ru-en=one=один|en-ru=один=one|sym-en=1=one
+ru-en=star=звезда|en-ru=звезда=star|sym-en=*=star|sym-ru=*=звезда
